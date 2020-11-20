@@ -47,6 +47,7 @@ public class OctankAgentPortal extends Construct {
 		//WAFNestedStack wafNestedStack = new WAFNestedStack(networkStack, "OctankWAF");
 
 		Tags.of(networkStack).add("project", "AB3");
+		Tags.of(encryptionKeyStack).add("project", "AB3");
 		Tags.of(agentPortalDBStack).add("project", "AB3");
 		//Tags.of(wafNestedStack).add("project", "AB3");
 	}

@@ -23,9 +23,6 @@ import software.amazon.awscdk.core.StackProps;
  * @author Michael C. Han (mhnmz)
  */
 public class AgentPortalStack extends Stack {
-	public AgentPortalStack(final Construct scope, final String id) {
-		this(scope, id, null);
-	}
 
 	public AgentPortalStack(final Construct scope, final String id, final StackProps props) {
 		super(scope, id, props);

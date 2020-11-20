@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package com.amazon.octank.network;
+package com.amazon.octank.security;
 
 import software.amazon.awscdk.core.Construct;
 import software.amazon.awscdk.core.NestedStack;
@@ -28,10 +28,6 @@ import java.util.List;
  * @author Michael C. Han (mhnmz)
  */
 public class WAFNestedStack extends NestedStack {
-
-	public WAFNestedStack(Construct scope, String id) {
-		this(scope, id, null);
-	}
 
 	public WAFNestedStack(Construct scope, String id, NestedStackProps props) {
 		super(scope, id, props);

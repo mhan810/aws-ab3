@@ -50,10 +50,6 @@ public class NetworkStack extends Stack {
 	public static final String DMZ_SG_ID = "DmzSG";
 	public static final String DB_SG_ID = "DbSG";
 
-	public NetworkStack(final Construct scope, final String id) {
-		this(scope, id, null);
-	}
-
 	public NetworkStack(final Construct scope, final String id, final StackProps props) {
 		super(scope, id, props);
 
@@ -117,7 +113,7 @@ public class NetworkStack extends Stack {
 
 			@Override
 			public String getSecurityGroupName() {
-				return "Bb";
+				return "Db";
 			}
 		});
 
