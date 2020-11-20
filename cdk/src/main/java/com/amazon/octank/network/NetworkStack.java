@@ -42,13 +42,13 @@ import java.util.Map;
  */
 public class NetworkStack extends Stack {
 
-	public static final String APP_SUBNET_NAME = "App";
-	public static final String DB_SUBNET_NAME = "Db";
-	public static final String DMZ_SUBNET_NAME = "Dmz";
 	public static final String APP_SG_ID = "AppSG";
+	public static final String APP_SUBNET_NAME = "App";
 	public static final String BASTION_SG_ID = "BastionSG";
-	public static final String DMZ_SG_ID = "DmzSG";
 	public static final String DB_SG_ID = "DbSG";
+	public static final String DB_SUBNET_NAME = "Db";
+	public static final String DMZ_SG_ID = "DmzSG";
+	public static final String DMZ_SUBNET_NAME = "Dmz";
 
 	public NetworkStack(final Construct scope, final String id, final StackProps props) {
 		super(scope, id, props);
@@ -58,49 +58,12 @@ public class NetworkStack extends Stack {
 		addSecurityGroups(_vpc);
 	}
 
-	private Vpc buildVPC(Construct scope, String id) {
-		return new Vpc(scope, id, new VpcProps() {
-			@Override
-			public String getCidr() {
-				return "10.0.0.0/16";
-			}
+	public Map<String, SecurityGroup> getSecurityGroups() {
+		return _securityGroups;
+	}
 
-			@Override
-			public Map<String, GatewayVpcEndpointOptions> getGatewayEndpoints() {
-				Map<String, GatewayVpcEndpointOptions> gatewayVpcEndpointOptions = new HashMap<>();
-
-				List<SubnetSelection> subnetSelections = Collections.singletonList(
-					SubnetSelection.builder().subnetGroupName(APP_SUBNET_NAME).build());
-
-				GatewayVpcEndpointOptions s3GatewayVpcEndpointOptions = GatewayVpcEndpointOptions.builder().service(
-					GatewayVpcEndpointAwsService.S3).subnets(subnetSelections).build();
-
-				gatewayVpcEndpointOptions.put("OctankS3Gateway", s3GatewayVpcEndpointOptions);
-
-				return gatewayVpcEndpointOptions;
-			}
-
-			@Override
-			public Number getMaxAzs() {
-				return 2;
-			}
-
-			@Override
-			public List<SubnetConfiguration> getSubnetConfiguration() {
-				List<SubnetConfiguration> subnetConfigurations = new ArrayList<>();
-
-				subnetConfigurations.add(SubnetConfiguration.builder().name(DB_SUBNET_NAME).subnetType(
-					SubnetType.PRIVATE).cidrMask(24).build());
-
-				subnetConfigurations.add(SubnetConfiguration.builder().name(APP_SUBNET_NAME).subnetType(
-					SubnetType.PRIVATE).cidrMask(24).build());
-
-				subnetConfigurations.add(SubnetConfiguration.builder().name(DMZ_SUBNET_NAME).subnetType(
-					SubnetType.PUBLIC).cidrMask(24).build());
-
-				return subnetConfigurations;
-			}
-		});
+	public Vpc getVpc() {
+		return _vpc;
 	}
 
 	private void addSecurityGroups(final Vpc vpc) {
@@ -181,14 +144,50 @@ public class NetworkStack extends Stack {
 		dmzSecurityGroup.addIngressRule(bastionSecurityGroup, Port.tcp(22));
 	}
 
-	public Vpc getVpc() {
-		return _vpc;
-	}
+	private Vpc buildVPC(Construct scope, String id) {
+		return new Vpc(scope, id, new VpcProps() {
+			@Override
+			public String getCidr() {
+				return "10.0.0.0/16";
+			}
 
-	public Map<String, SecurityGroup> getSecurityGroups() {
-		return _securityGroups;
-	}
+			@Override
+			public Map<String, GatewayVpcEndpointOptions> getGatewayEndpoints() {
+				Map<String, GatewayVpcEndpointOptions> gatewayVpcEndpointOptions = new HashMap<>();
 
+				List<SubnetSelection> subnetSelections = Collections.singletonList(
+					SubnetSelection.builder().subnetGroupName(APP_SUBNET_NAME).build());
+
+				GatewayVpcEndpointOptions s3GatewayVpcEndpointOptions = GatewayVpcEndpointOptions.builder().service(
+					GatewayVpcEndpointAwsService.S3).subnets(subnetSelections).build();
+
+				gatewayVpcEndpointOptions.put("OctankS3Gateway", s3GatewayVpcEndpointOptions);
+
+				return gatewayVpcEndpointOptions;
+			}
+
+			@Override
+			public Number getMaxAzs() {
+				return 2;
+			}
+
+			@Override
+			public List<SubnetConfiguration> getSubnetConfiguration() {
+				List<SubnetConfiguration> subnetConfigurations = new ArrayList<>();
+
+				subnetConfigurations.add(SubnetConfiguration.builder().name(DB_SUBNET_NAME).subnetType(
+					SubnetType.PRIVATE).cidrMask(24).build());
+
+				subnetConfigurations.add(SubnetConfiguration.builder().name(APP_SUBNET_NAME).subnetType(
+					SubnetType.PRIVATE).cidrMask(24).build());
+
+				subnetConfigurations.add(SubnetConfiguration.builder().name(DMZ_SUBNET_NAME).subnetType(
+					SubnetType.PUBLIC).cidrMask(24).build());
+
+				return subnetConfigurations;
+			}
+		});
+	}
 	private final Vpc _vpc;
 	private final Map<String, SecurityGroup> _securityGroups = new HashMap<>();
 
