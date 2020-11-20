@@ -63,6 +63,11 @@
         </dependency>
         <dependency>
             <groupId>software.amazon.awscdk</groupId>
+            <artifactId>kms</artifactId>
+            <version>${cdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awscdk</groupId>
             <artifactId>rds</artifactId>
             <version>${cdk.version}</version>
         </dependency>
@@ -74,6 +79,11 @@
         <dependency>
             <groupId>software.amazon.awscdk</groupId>
             <artifactId>route53-targets</artifactId>
+            <version>${cdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awscdk</groupId>
+            <artifactId>secretsmanager</artifactId>
             <version>${cdk.version}</version>
         </dependency>
         <dependency>
