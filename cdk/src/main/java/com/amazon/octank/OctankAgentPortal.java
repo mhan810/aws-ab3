@@ -30,10 +30,10 @@ import software.amazon.awscdk.services.ec2.SecurityGroup;
  */
 public class OctankAgentPortal extends Construct {
 
-	protected OctankAgentPortal(Construct scope, String id) {
+	protected OctankAgentPortal(Construct scope, String id, Environment environment) {
 		super(scope, id);
 
-		NetworkStack networkStack = new NetworkStack(this,"OctankNetwork", null);
+		NetworkStack networkStack = new NetworkStack(this, "OctankNetwork", null);
 
 		SecurityGroup bastionSecurityGroup = networkStack.getSecurityGroups().get(NetworkStack.BASTION_SG_ID);
 
@@ -43,7 +43,7 @@ public class OctankAgentPortal extends Construct {
 		EncryptionKeyStack encryptionKeyStack = new EncryptionKeyStack(this, "OctankKeys", null);
 
 		AgentPortalDBStack agentPortalDBStack = new AgentPortalDBStack(
-			this, "OctankDb", null, networkStack, encryptionKeyStack);
+			this, "OctankDb", null, networkStack, encryptionKeyStack, environment);
 		//WAFNestedStack wafNestedStack = new WAFNestedStack(networkStack, "OctankWAF");
 
 		Tags.of(networkStack).add("project", "AB3");
@@ -55,7 +55,15 @@ public class OctankAgentPortal extends Construct {
 	public static void main(final String[] args) {
 		App app = new App();
 
-		new OctankAgentPortal(app, "poc");
+		Environment environment = Environment.NON_PRODUCTION;
+
+		String envPropValue = System.getenv("env");
+
+		if ((envPropValue != null) && (envPropValue.equals("prd") || envPropValue.equals("prod"))) {
+			environment = Environment.PRODUCTION;
+		}
+
+		new OctankAgentPortal(app, "poc", environment);
 
 		app.synth();
 	}

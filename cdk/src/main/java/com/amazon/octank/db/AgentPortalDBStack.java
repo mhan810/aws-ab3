@@ -15,26 +15,28 @@
 
 package com.amazon.octank.db;
 
+import com.amazon.octank.Environment;
 import com.amazon.octank.network.NetworkStack;
 import com.amazon.octank.security.EncryptionKeyStack;
 import software.amazon.awscdk.core.Construct;
 import software.amazon.awscdk.core.Duration;
-import software.amazon.awscdk.core.RemovalPolicy;
 import software.amazon.awscdk.core.Stack;
 import software.amazon.awscdk.core.StackProps;
 import software.amazon.awscdk.services.ec2.ISubnet;
+import software.amazon.awscdk.services.ec2.InstanceClass;
+import software.amazon.awscdk.services.ec2.InstanceSize;
+import software.amazon.awscdk.services.ec2.InstanceType;
 import software.amazon.awscdk.services.ec2.SubnetSelection;
 import software.amazon.awscdk.services.ec2.Vpc;
 import software.amazon.awscdk.services.rds.Credentials;
 import software.amazon.awscdk.services.rds.DatabaseInstance;
 import software.amazon.awscdk.services.rds.DatabaseInstanceEngine;
 import software.amazon.awscdk.services.rds.DatabaseInstanceProps;
+import software.amazon.awscdk.services.rds.DatabaseSecret;
+import software.amazon.awscdk.services.rds.DatabaseSecretProps;
 import software.amazon.awscdk.services.rds.SqlServerEngineVersion;
 import software.amazon.awscdk.services.rds.SubnetGroup;
 import software.amazon.awscdk.services.rds.SubnetGroupProps;
-import software.amazon.awscdk.services.secretsmanager.Secret;
-import software.amazon.awscdk.services.secretsmanager.SecretProps;
-import software.amazon.awscdk.services.secretsmanager.SecretStringGenerator;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -48,31 +50,42 @@ public class AgentPortalDBStack extends Stack {
 	//
 	public AgentPortalDBStack(
 		final Construct scope, final String id, final StackProps stackProps, final NetworkStack networkStack,
-		final EncryptionKeyStack encryptionKeyStack) {
+		final EncryptionKeyStack encryptionKeyStack, Environment environment) {
 
 		super(scope, id, stackProps);
 
 		Vpc vpc = networkStack.getVpc();
 
-		DatabaseInstanceProps.Builder databaseInstancePropsBuilder = DatabaseInstanceProps.builder().vpc(vpc).engine(
-			DatabaseInstanceEngine.sqlServerSe(() -> SqlServerEngineVersion.VER_15_00_4043_16_V1));
+		DatabaseInstanceProps.Builder databaseInstancePropsBuilder = DatabaseInstanceProps.builder().availabilityZone(
+			"us-east-1a").vpc(vpc);
 
-		databaseInstancePropsBuilder.availabilityZone("us-east-1a");
+		if (environment.equals(Environment.PRODUCTION)) {
+			databaseInstancePropsBuilder.engine(
+				DatabaseInstanceEngine.sqlServerSe(() -> SqlServerEngineVersion.VER_15_00_4043_16_V1));
 
-		//@todo make sure multi-AZ configured w/ right SQLServer engine
-		databaseInstancePropsBuilder.multiAz(true);
+			databaseInstancePropsBuilder.instanceType(InstanceType.of(InstanceClass.STANDARD5, InstanceSize.XLARGE));
+			databaseInstancePropsBuilder.multiAz(true);
+		}
+		else {
+			//non-prod
+			databaseInstancePropsBuilder.engine(
+				DatabaseInstanceEngine.sqlServerWeb(() -> SqlServerEngineVersion.VER_15_00_4043_16_V1));
 
+			databaseInstancePropsBuilder.instanceType(InstanceType.of(InstanceClass.BURSTABLE3, InstanceSize.LARGE));
+			databaseInstancePropsBuilder.multiAz(false);
+		}
 		databaseInstancePropsBuilder.allocatedStorage(20);
+
 		databaseInstancePropsBuilder.autoMinorVersionUpgrade(true).backupRetention(Duration.days(7));
 
-		addCredentials(id, encryptionKeyStack, databaseInstancePropsBuilder);
+		addCredentials(encryptionKeyStack, databaseInstancePropsBuilder);
 
 		databaseInstancePropsBuilder.cloudwatchLogsExports(Collections.singletonList("error"));
-		databaseInstancePropsBuilder.databaseName("AgentPortal");
 		databaseInstancePropsBuilder.enablePerformanceInsights(true);
 		databaseInstancePropsBuilder.instanceIdentifier("octank-1");
 		databaseInstancePropsBuilder.deleteAutomatedBackups(true);
 
+		databaseInstancePropsBuilder.maxAllocatedStorage(100);
 		databaseInstancePropsBuilder.storageEncrypted(true);
 		databaseInstancePropsBuilder.storageEncryptionKey(encryptionKeyStack.getDataEncryptionKey());
 
@@ -104,16 +117,14 @@ public class AgentPortalDBStack extends Stack {
 	}
 
 	private void addCredentials(
-		String id, EncryptionKeyStack encryptionKeyStack, DatabaseInstanceProps.Builder databaseInstancePropsBuilder) {
+		EncryptionKeyStack encryptionKeyStack, DatabaseInstanceProps.Builder databaseInstancePropsBuilder) {
 
-		SecretProps.Builder secretPropsBuilder = SecretProps.builder().secretName("DatabaseSecret").description(
-			"Managed database passcode for AgentPortal").encryptionKey(encryptionKeyStack.getPassEncryptionKey());
-		secretPropsBuilder.generateSecretString(SecretStringGenerator.builder().build()).removalPolicy(
-			RemovalPolicy.DESTROY);
+		DatabaseSecretProps databaseSecretProps = DatabaseSecretProps.builder().username("admin").encryptionKey(
+			encryptionKeyStack.getPassEncryptionKey()).build();
 
-		Secret secret = new Secret(this, id + "DatabaseSecret", secretPropsBuilder.build());
+		DatabaseSecret databaseSecret = new DatabaseSecret(this, "OctankDatabaseSecret", databaseSecretProps);
 
-		databaseInstancePropsBuilder.credentials(Credentials.fromSecret(secret));
+		databaseInstancePropsBuilder.credentials(Credentials.fromSecret(databaseSecret, "admin"));
 	}
 
 	private final DatabaseInstance _databaseInstance;

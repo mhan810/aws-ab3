@@ -17,6 +17,7 @@ package com.amazon.octank;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.sun.tools.doclint.Env;
 import org.junit.jupiter.api.Test;
 import software.amazon.awscdk.core.App;
 import software.amazon.awscdk.cxapi.CloudAssembly;
@@ -30,7 +31,7 @@ public class OctankAgentPortalTest {
 	public void testStack() {
 		App app = new App();
 
-		OctankAgentPortal octankAgentPortal = new OctankAgentPortal(app, "test");
+		OctankAgentPortal octankAgentPortal = new OctankAgentPortal(app, "test", Environment.NON_PRODUCTION);
 
 		// synthesize the stack to a CloudFormation template and compare against
 		// a checked-in JSON file.
