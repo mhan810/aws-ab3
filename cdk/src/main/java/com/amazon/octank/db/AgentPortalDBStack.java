@@ -15,44 +15,90 @@
 
 package com.amazon.octank.db;
 
+import com.amazon.octank.network.NetworkStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.amazon.awscdk.core.Construct;
+import software.amazon.awscdk.core.Duration;
 import software.amazon.awscdk.core.Stack;
 import software.amazon.awscdk.core.StackProps;
-import software.amazon.awscdk.services.ec2.IVpc;
+import software.amazon.awscdk.services.ec2.ISubnet;
+import software.amazon.awscdk.services.ec2.SubnetSelection;
 import software.amazon.awscdk.services.ec2.Vpc;
+import software.amazon.awscdk.services.rds.Credentials;
 import software.amazon.awscdk.services.rds.DatabaseInstance;
 import software.amazon.awscdk.services.rds.DatabaseInstanceEngine;
 import software.amazon.awscdk.services.rds.DatabaseInstanceProps;
-import software.amazon.awscdk.services.rds.IInstanceEngine;
 import software.amazon.awscdk.services.rds.SqlServerEngineVersion;
+import software.amazon.awscdk.services.rds.SubnetGroup;
+import software.amazon.awscdk.services.rds.SubnetGroupProps;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author Michael C. Han (mhnmz)
  */
 public class AgentPortalDBStack extends Stack {
-	public AgentPortalDBStack(@NotNull Construct scope, @NotNull String id, @NotNull final Vpc vpc) {
-		this(scope, id, null, vpc);
+	public AgentPortalDBStack(@NotNull Construct scope, @NotNull String id, @NotNull final NetworkStack networkStack) {
+		this(scope, id, null, networkStack);
 	}
 
 	public AgentPortalDBStack(
-		@NotNull Construct scope, @NotNull String id, @Nullable StackProps props, @NotNull final Vpc vpc) {
+		@NotNull Construct scope, @NotNull String id, @Nullable StackProps props,
+		@NotNull final NetworkStack networkStack) {
 
 		super(scope, id, props);
 
-		DatabaseInstance dbInstance = new DatabaseInstance(this, "AgentPortalDB", new DatabaseInstanceProps() {
-			@Override
-			public @NotNull IInstanceEngine getEngine() {
-				return DatabaseInstanceEngine.sqlServerSe(() -> SqlServerEngineVersion.VER_15_00_4043_16_V1);
-			}
+		Vpc vpc = networkStack.getVpc();
 
-			@Override
-			public @NotNull IVpc getVpc() {
-				return vpc;
+		DatabaseInstanceProps.Builder databaseInstancePropsBuilder = DatabaseInstanceProps.builder().vpc(vpc).engine(
+			DatabaseInstanceEngine.sqlServerSe(() -> SqlServerEngineVersion.VER_15_00_4043_16_V1));
+
+		databaseInstancePropsBuilder.availabilityZone("us-east-1a");
+
+		//@todo make sure multi-AZ configured w/ right SQLServer engine
+		databaseInstancePropsBuilder.multiAz(true);
+
+		databaseInstancePropsBuilder.allocatedStorage(20);
+		databaseInstancePropsBuilder.autoMinorVersionUpgrade(true).backupRetention(Duration.days(7));
+
+		//@todo use KMS to encrypt password
+		databaseInstancePropsBuilder.credentials(Credentials.fromGeneratedSecret("admin"));
+
+		//databaseInstancePropsBuilder.cloudwatchLogsExports();
+		databaseInstancePropsBuilder.databaseName("Octank");
+		databaseInstancePropsBuilder.enablePerformanceInsights(true);
+		databaseInstancePropsBuilder.instanceIdentifier("octank");
+
+		databaseInstancePropsBuilder.storageEncrypted(true);
+		//@todo KMS key for encryption
+		//databaseInstancePropsBuilder.storageEncryptionKey();
+
+		databaseInstancePropsBuilder.securityGroups(
+			Collections.singletonList(networkStack.getSecurityGroups().get(NetworkStack.DB_SG_ID)));
+
+		List<ISubnet> dbSubnets = new ArrayList<>();
+
+		vpc.getPrivateSubnets().forEach(iSubnet -> {
+			if (iSubnet.getNode().getId().contains(NetworkStack.DB_SUBNET_NAME)) {
+				dbSubnets.add(iSubnet);
 			}
 		});
 
+		SubnetGroupProps.Builder subnetGroupPropsBuilder = SubnetGroupProps.builder().description(
+			"Subnet Group for AgentPortalDb").subnetGroupName(NetworkStack.DB_SUBNET_NAME);
+
+		subnetGroupPropsBuilder.vpc(networkStack.getVpc()).vpcSubnets(
+			SubnetSelection.builder().subnets(dbSubnets).build());
+
+		databaseInstancePropsBuilder.subnetGroup(
+			new SubnetGroup(this, "AgentPortalDbSubnetGroup", subnetGroupPropsBuilder.build()));
+
+		_databaseInstance = new DatabaseInstance(this, "AgentPortalDB", databaseInstancePropsBuilder.build());
 	}
+
+	private final DatabaseInstance _databaseInstance;
 
 }

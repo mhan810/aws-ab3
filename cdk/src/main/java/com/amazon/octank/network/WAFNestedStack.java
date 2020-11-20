@@ -52,8 +52,7 @@ public class WAFNestedStack extends NestedStack {
 			@Override
 			public @NotNull Object getVisibilityConfig() {
 				return CfnWebACL.VisibilityConfigProperty.builder().cloudWatchMetricsEnabled(true)
-				                                         .sampledRequestsEnabled(true).metricName("AgentPortalWaf")
-				                                         .build();
+					       .sampledRequestsEnabled(true).metricName("AgentPortalWaf").build();
 			}
 
 			@Override
@@ -73,6 +72,6 @@ public class WAFNestedStack extends NestedStack {
 		return _cfnWebACL;
 	}
 
-	private CfnWebACL _cfnWebACL;
+	private final CfnWebACL _cfnWebACL;
 
 }

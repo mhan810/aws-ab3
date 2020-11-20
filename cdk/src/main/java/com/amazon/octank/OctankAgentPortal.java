@@ -15,6 +15,7 @@
 
 package com.amazon.octank;
 
+import com.amazon.octank.db.AgentPortalDBStack;
 import com.amazon.octank.network.NetworkStack;
 import software.amazon.awscdk.core.App;
 import software.amazon.awscdk.core.Construct;
@@ -33,14 +34,16 @@ public class OctankAgentPortal extends Construct {
 
 		NetworkStack networkStack = new NetworkStack(this, "OctankNetwork");
 
-		SecurityGroup bastionSecurityGroup = networkStack.getSecurityGroups().get(
-			NetworkStack.BASTION_SG_ID);
+		SecurityGroup bastionSecurityGroup = networkStack.getSecurityGroups().get(NetworkStack.BASTION_SG_ID);
 
+		//@todo this isn't best. Should put this a little more securely
 		bastionSecurityGroup.addIngressRule(Peer.anyIpv4(), Port.tcp(22));
 
+		AgentPortalDBStack agentPortalDBStack = new AgentPortalDBStack(this, "OctankDb", networkStack);
 		//WAFNestedStack wafNestedStack = new WAFNestedStack(networkStack, "OctankWAF");
 
 		Tags.of(networkStack).add("project", "AB3");
+		Tags.of(agentPortalDBStack).add("project", "AB3");
 		//Tags.of(wafNestedStack).add("project", "AB3");
 	}
 

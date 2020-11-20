@@ -15,14 +15,11 @@
 
 package com.amazon.octank;
 
-import com.amazon.octank.OctankAgentPortal;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import org.junit.jupiter.api.Test;
 import software.amazon.awscdk.core.App;
 import software.amazon.awscdk.cxapi.CloudAssembly;
-
-import java.io.IOException;
 
 /**
  * @author Michael C. Han (mhnmz)
@@ -30,7 +27,7 @@ import java.io.IOException;
 public class OctankAgentPortalTest {
 
 	@Test
-	public void testStack() throws IOException {
+	public void testStack() {
 		App app = new App();
 
 		OctankAgentPortal octankAgentPortal = new OctankAgentPortal(app, "test");
