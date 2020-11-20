@@ -15,8 +15,6 @@
 
 package com.amazon.octank.network;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import software.amazon.awscdk.core.Construct;
 import software.amazon.awscdk.core.NestedStack;
 import software.amazon.awscdk.core.NestedStackProps;
@@ -31,26 +29,26 @@ import java.util.List;
  */
 public class WAFNestedStack extends NestedStack {
 
-	public WAFNestedStack(@NotNull Construct scope, @NotNull String id) {
+	public WAFNestedStack(Construct scope, String id) {
 		this(scope, id, null);
 	}
 
-	public WAFNestedStack(@NotNull Construct scope, @NotNull String id, @Nullable NestedStackProps props) {
+	public WAFNestedStack(Construct scope, String id, NestedStackProps props) {
 		super(scope, id, props);
 
 		_cfnWebACL = new CfnWebACL(this, "OctankAgentPortalWaf", new CfnWebACLProps() {
 			@Override
-			public @NotNull Object getDefaultAction() {
+			public Object getDefaultAction() {
 				return CfnWebACL.DefaultActionProperty.builder().allow(Boolean.TRUE).build();
 			}
 
 			@Override
-			public @NotNull String getScope() {
+			public String getScope() {
 				return "REGIONAL";
 			}
 
 			@Override
-			public @NotNull Object getVisibilityConfig() {
+			public Object getVisibilityConfig() {
 				return CfnWebACL.VisibilityConfigProperty.builder().cloudWatchMetricsEnabled(true)
 					       .sampledRequestsEnabled(true).metricName("AgentPortalWaf").build();
 			}

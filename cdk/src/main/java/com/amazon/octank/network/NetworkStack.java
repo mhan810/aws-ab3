@@ -15,7 +15,6 @@
 
 package com.amazon.octank.network;
 
-import org.jetbrains.annotations.NotNull;
 import software.amazon.awscdk.core.Construct;
 import software.amazon.awscdk.core.Stack;
 import software.amazon.awscdk.core.StackProps;
@@ -112,7 +111,7 @@ public class NetworkStack extends Stack {
 
 		SecurityGroup dbSecurityGroup = new SecurityGroup(vpc, DB_SG_ID, new SecurityGroupProps() {
 			@Override
-			public @NotNull IVpc getVpc() {
+			public IVpc getVpc() {
 				return vpc;
 			}
 
@@ -126,7 +125,7 @@ public class NetworkStack extends Stack {
 
 		SecurityGroup appSecurityGroup = new SecurityGroup(vpc, APP_SG_ID, new SecurityGroupProps() {
 			@Override
-			public @NotNull IVpc getVpc() {
+			public IVpc getVpc() {
 				return vpc;
 			}
 
@@ -140,7 +139,7 @@ public class NetworkStack extends Stack {
 
 		SecurityGroup dmzSecurityGroup = new SecurityGroup(vpc, DMZ_SG_ID, new SecurityGroupProps() {
 			@Override
-			public @NotNull IVpc getVpc() {
+			public IVpc getVpc() {
 				return vpc;
 			}
 
@@ -154,7 +153,7 @@ public class NetworkStack extends Stack {
 
 		SecurityGroup bastionSecurityGroup = new SecurityGroup(vpc, BASTION_SG_ID, new SecurityGroupProps() {
 			@Override
-			public @NotNull IVpc getVpc() {
+			public IVpc getVpc() {
 				return vpc;
 			}
 

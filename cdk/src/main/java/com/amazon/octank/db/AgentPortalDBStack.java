@@ -16,8 +16,6 @@
 package com.amazon.octank.db;
 
 import com.amazon.octank.network.NetworkStack;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import software.amazon.awscdk.core.Construct;
 import software.amazon.awscdk.core.Duration;
 import software.amazon.awscdk.core.Stack;
@@ -41,13 +39,13 @@ import java.util.List;
  * @author Michael C. Han (mhnmz)
  */
 public class AgentPortalDBStack extends Stack {
-	public AgentPortalDBStack(@NotNull Construct scope, @NotNull String id, @NotNull final NetworkStack networkStack) {
+	public AgentPortalDBStack(Construct scope, String id, final NetworkStack networkStack) {
 		this(scope, id, null, networkStack);
 	}
 
 	public AgentPortalDBStack(
-		@NotNull Construct scope, @NotNull String id, @Nullable StackProps props,
-		@NotNull final NetworkStack networkStack) {
+		Construct scope, String id, StackProps props,
+		final NetworkStack networkStack) {
 
 		super(scope, id, props);
 
@@ -97,6 +95,10 @@ public class AgentPortalDBStack extends Stack {
 			new SubnetGroup(this, "AgentPortalDbSubnetGroup", subnetGroupPropsBuilder.build()));
 
 		_databaseInstance = new DatabaseInstance(this, "AgentPortalDB", databaseInstancePropsBuilder.build());
+	}
+
+	public DatabaseInstance getDatabaseInstance() {
+		return _databaseInstance;
 	}
 
 	private final DatabaseInstance _databaseInstance;
