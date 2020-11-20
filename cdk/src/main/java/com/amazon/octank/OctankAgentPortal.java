@@ -40,7 +40,7 @@ public class OctankAgentPortal extends Construct {
 		//@todo this isn't best. Should put this a little more securely
 		bastionSecurityGroup.addIngressRule(Peer.anyIpv4(), Port.tcp(22));
 
-		EncryptionKeyStack encryptionKeyStack = new EncryptionKeyStack(this, "OctankKeys", null);
+		EncryptionKeyStack encryptionKeyStack = new EncryptionKeyStack(this, "OctankKeys", null, environment);
 
 		AgentPortalDBStack agentPortalDBStack = new AgentPortalDBStack(
 			this, "OctankDb", null, networkStack, encryptionKeyStack, environment);

@@ -41,6 +41,7 @@ import software.amazon.awscdk.services.rds.SubnetGroupProps;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author Michael C. Han (mhnmz)
@@ -59,12 +60,13 @@ public class AgentPortalDBStack extends Stack {
 		DatabaseInstanceProps.Builder databaseInstancePropsBuilder = DatabaseInstanceProps.builder().availabilityZone(
 			"us-east-1a").vpc(vpc);
 
-		if (environment.equals(Environment.PRODUCTION)) {
+		if (Objects.equals(environment, Environment.PRODUCTION)) {
 			databaseInstancePropsBuilder.engine(
 				DatabaseInstanceEngine.sqlServerSe(() -> SqlServerEngineVersion.VER_15_00_4043_16_V1));
 
 			databaseInstancePropsBuilder.instanceType(InstanceType.of(InstanceClass.STANDARD5, InstanceSize.XLARGE));
 			databaseInstancePropsBuilder.multiAz(true);
+			databaseInstancePropsBuilder.deleteAutomatedBackups(false);
 		}
 		else {
 			//non-prod
@@ -73,6 +75,7 @@ public class AgentPortalDBStack extends Stack {
 
 			databaseInstancePropsBuilder.instanceType(InstanceType.of(InstanceClass.BURSTABLE3, InstanceSize.LARGE));
 			databaseInstancePropsBuilder.multiAz(false);
+			databaseInstancePropsBuilder.deleteAutomatedBackups(true);
 		}
 		databaseInstancePropsBuilder.allocatedStorage(20);
 
@@ -83,7 +86,6 @@ public class AgentPortalDBStack extends Stack {
 		databaseInstancePropsBuilder.cloudwatchLogsExports(Collections.singletonList("error"));
 		databaseInstancePropsBuilder.enablePerformanceInsights(true);
 		databaseInstancePropsBuilder.instanceIdentifier("octank-1");
-		databaseInstancePropsBuilder.deleteAutomatedBackups(true);
 
 		databaseInstancePropsBuilder.maxAllocatedStorage(100);
 		databaseInstancePropsBuilder.storageEncrypted(true);
