@@ -17,7 +17,6 @@ package com.amazon.octank;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.sun.tools.doclint.Env;
 import org.junit.jupiter.api.Test;
 import software.amazon.awscdk.core.App;
 import software.amazon.awscdk.cxapi.CloudAssembly;
