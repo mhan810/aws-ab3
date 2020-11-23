@@ -15,8 +15,9 @@
 
 package com.amazon.octank.app;
 
+import com.amazon.octank.OctankAgentPortal;
 import com.amazon.octank.network.NetworkStack;
-import com.amazon.octank.security.IAMStack;
+import com.amazon.octank.util.IAMUtils;
 import software.amazon.awscdk.core.Construct;
 import software.amazon.awscdk.core.Duration;
 import software.amazon.awscdk.core.Stack;
@@ -45,6 +46,7 @@ import software.amazon.awscdk.services.elasticloadbalancingv2.ListenerCertificat
 import software.amazon.awscdk.services.elasticloadbalancingv2.Protocol;
 import software.amazon.awscdk.services.elasticloadbalancingv2.SslPolicy;
 import software.amazon.awscdk.services.elasticloadbalancingv2.TargetType;
+import software.amazon.awscdk.services.iam.Role;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -57,15 +59,13 @@ import java.util.Map;
 public class AgentPortalStack extends Stack {
 
 	public static final String AGENT_PORTAL_IMAGE_ID = "ami-09b540032d6ca0048";
-	public static final String KEY_PAIR_NAME = "ab3-key-pair";
 
 	public AgentPortalStack(
-		final Construct scope, final String id, final StackProps props, final NetworkStack networkStack,
-		final IAMStack iamStack) {
+		final Construct scope, final String id, final StackProps props, final NetworkStack networkStack) {
 
 		super(scope, id, props);
 
-		_appServerASG = addAppServerASG(networkStack, iamStack);
+		_appServerASG = addAppServerASG(networkStack);
 		_appServerALB = addAppServerALB(networkStack);
 	}
 
@@ -129,18 +129,22 @@ public class AgentPortalStack extends Stack {
 		return _appServerALB;
 	}
 
-	private AutoScalingGroup addAppServerASG(NetworkStack networkStack, final IAMStack iamStack) {
+	private AutoScalingGroup addAppServerASG(NetworkStack networkStack) {
 		AutoScalingGroupProps.Builder appServerASGPropsBuilder = AutoScalingGroupProps.builder().autoScalingGroupName(
 			"AgentAppServerASG");
 
 		appServerASGPropsBuilder.instanceType(InstanceType.of(InstanceClass.STANDARD5, InstanceSize.XLARGE));
 		appServerASGPropsBuilder.machineImage(
 			MachineImage.genericLinux(Collections.singletonMap("us-east-1", AGENT_PORTAL_IMAGE_ID)));
-		appServerASGPropsBuilder.keyName(KEY_PAIR_NAME);
+		appServerASGPropsBuilder.keyName(OctankAgentPortal.KEY_PAIR_NAME);
 
 		appServerASGPropsBuilder.associatePublicIpAddress(false);
 		appServerASGPropsBuilder.minCapacity(2).maxCapacity(4);
-		appServerASGPropsBuilder.role(iamStack.getAgentPortalEC2Role());
+
+		Role agentPortalEC2Role = IAMUtils.createEC2Role(this, "AgentPortalAppRole", "Octank_AgentPortal_EC2",
+			"SecretsManagerReadWrite", "AmazonS3FullAccess", "CloudWatchAgentServerPolicy",
+			"AmazonSSMManagedInstanceCore", "AmazonRDSDataFullAccess");
+		appServerASGPropsBuilder.role(agentPortalEC2Role);
 
 		appServerASGPropsBuilder.groupMetrics(Collections.singletonList(GroupMetrics.all()));
 

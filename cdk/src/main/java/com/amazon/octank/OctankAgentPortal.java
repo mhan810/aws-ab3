@@ -17,21 +17,20 @@ package com.amazon.octank;
 
 import com.amazon.octank.app.AgentPortalStack;
 import com.amazon.octank.db.AgentPortalDBStack;
+import com.amazon.octank.network.BastionStack;
 import com.amazon.octank.network.NetworkStack;
 import com.amazon.octank.security.EncryptionKeyStack;
-import com.amazon.octank.security.IAMStack;
 import software.amazon.awscdk.core.App;
 import software.amazon.awscdk.core.Construct;
 import software.amazon.awscdk.core.StackProps;
 import software.amazon.awscdk.core.Tags;
-import software.amazon.awscdk.services.ec2.Peer;
-import software.amazon.awscdk.services.ec2.Port;
-import software.amazon.awscdk.services.ec2.SecurityGroup;
 
 /**
  * @author Michael C. Han (mhnmz)
  */
 public class OctankAgentPortal extends Construct {
+
+	public static final String KEY_PAIR_NAME = "ab3-key-pair";
 
 	protected OctankAgentPortal(Construct scope, String id, Environment environment) {
 		super(scope, id);
@@ -43,30 +42,23 @@ public class OctankAgentPortal extends Construct {
 
 		NetworkStack networkStack = new NetworkStack(this, "OctankNetwork", stackProps);
 
-		SecurityGroup bastionSecurityGroup = networkStack.getSecurityGroups().get(NetworkStack.BASTION_SG_ID);
-
-		//@todo this isn't best. Should put this a little more securely
-		bastionSecurityGroup.addIngressRule(Peer.anyIpv4(), Port.tcp(22));
+		BastionStack bastionStack = new BastionStack(this, "OctankBastion", stackProps, networkStack);
 
 		EncryptionKeyStack encryptionKeyStack = new EncryptionKeyStack(this, "OctankKeys", stackProps, environment);
 
 		// @todo private CAs not supported well in CDK 1.74 can re-examine when support improved
 		//CertificateStack certificateStack = new CertificateStack(this, "OctankCA", stackProps);
 
-		IAMStack iamStack = new IAMStack(this, "OctankIAM", stackProps);
-
 		AgentPortalDBStack agentPortalDBStack = new AgentPortalDBStack(
 			this, "OctankDb", stackProps, networkStack, encryptionKeyStack, environment);
 
-		AgentPortalStack agentPortalStack = new AgentPortalStack(
-			this, "OctankAgentPortal", stackProps, networkStack, iamStack);
+		AgentPortalStack agentPortalStack = new AgentPortalStack(this, "OctankAgentPortal", stackProps, networkStack);
 
 		//WAFNestedStack wafNestedStack = new WAFNestedStack(networkStack, "OctankWAF", stackProps);
 
 		Tags.of(networkStack).add("project", "AB3");
 		Tags.of(encryptionKeyStack).add("project", "AB3");
 		//Tags.of(certificateStack).add("project", "AB3");
-		Tags.of(iamStack).add("project", "AB3");
 		Tags.of(agentPortalDBStack).add("project", "AB3");
 		Tags.of(agentPortalStack).add("project", "AB3");
 		//Tags.of(wafNestedStack).add("project", "AB3");
