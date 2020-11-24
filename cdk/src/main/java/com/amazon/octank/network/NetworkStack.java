@@ -192,7 +192,7 @@ public class NetworkStack extends Stack {
 		});
 	}
 
-	private final Vpc _vpc;
 	private final Map<String, SecurityGroup> _securityGroups = new HashMap<>();
+	private final Vpc _vpc;
 
 }
