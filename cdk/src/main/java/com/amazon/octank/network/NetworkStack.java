@@ -129,7 +129,10 @@ public class NetworkStack extends Stack {
 		dbSecurityGroup.addIngressRule(appSecurityGroup, Port.tcp(3306));
 		dbSecurityGroup.addIngressRule(appSecurityGroup, Port.tcp(5432));
 		dbSecurityGroup.addIngressRule(appSecurityGroup, Port.tcp(1521));
-		appSecurityGroup.addIngressRule(bastionSecurityGroup, Port.tcp(22));
+		dbSecurityGroup.addIngressRule(bastionSecurityGroup, Port.tcp(1433));
+		dbSecurityGroup.addIngressRule(bastionSecurityGroup, Port.tcp(3306));
+		dbSecurityGroup.addIngressRule(bastionSecurityGroup, Port.tcp(5432));
+		dbSecurityGroup.addIngressRule(bastionSecurityGroup, Port.tcp(1521));
 
 		//app server group
 		appSecurityGroup.addIngressRule(dmzSecurityGroup, Port.tcp(443));
