@@ -7,6 +7,9 @@ import software.amazon.awscdk.core.StackProps;
 import software.amazon.awscdk.services.autoscaling.AutoScalingGroup;
 import software.amazon.awscdk.services.autoscaling.AutoScalingGroupProps;
 import software.amazon.awscdk.services.autoscaling.GroupMetrics;
+import software.amazon.awscdk.services.ec2.AmazonLinuxCpuType;
+import software.amazon.awscdk.services.ec2.AmazonLinuxGeneration;
+import software.amazon.awscdk.services.ec2.AmazonLinuxImageProps;
 import software.amazon.awscdk.services.ec2.ISubnet;
 import software.amazon.awscdk.services.ec2.InstanceClass;
 import software.amazon.awscdk.services.ec2.InstanceSize;
@@ -50,7 +53,8 @@ public class BastionStack extends Stack {
 		AutoScalingGroupProps.Builder bastionASG = AutoScalingGroupProps.builder().autoScalingGroupName("BastionASG");
 
 		bastionASG.instanceType(InstanceType.of(InstanceClass.BURSTABLE4_GRAVITON, InstanceSize.SMALL));
-		bastionASG.machineImage(MachineImage.latestAmazonLinux());
+		bastionASG.machineImage(MachineImage.latestAmazonLinux(AmazonLinuxImageProps.builder().cpuType(
+			AmazonLinuxCpuType.ARM_64).generation(AmazonLinuxGeneration.AMAZON_LINUX_2).build()));
 		bastionASG.keyName(OctankAgentPortal.KEY_PAIR_NAME);
 
 		bastionASG.associatePublicIpAddress(true);
