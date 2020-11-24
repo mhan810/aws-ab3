@@ -64,7 +64,7 @@ public class AgentPortalDBStack extends Stack {
 			databaseInstancePropsBuilder.engine(
 				DatabaseInstanceEngine.sqlServerSe(() -> SqlServerEngineVersion.VER_15_00_4043_16_V1));
 
-			databaseInstancePropsBuilder.instanceType(InstanceType.of(InstanceClass.STANDARD5, InstanceSize.XLARGE));
+			databaseInstancePropsBuilder.instanceType(InstanceType.of(InstanceClass.STANDARD5, InstanceSize.XLARGE4));
 			databaseInstancePropsBuilder.multiAz(true);
 			databaseInstancePropsBuilder.deleteAutomatedBackups(false);
 		}
@@ -73,7 +73,7 @@ public class AgentPortalDBStack extends Stack {
 			databaseInstancePropsBuilder.engine(
 				DatabaseInstanceEngine.sqlServerWeb(() -> SqlServerEngineVersion.VER_15_00_4043_16_V1));
 
-			databaseInstancePropsBuilder.instanceType(InstanceType.of(InstanceClass.BURSTABLE3, InstanceSize.LARGE));
+			databaseInstancePropsBuilder.instanceType(InstanceType.of(InstanceClass.STANDARD5, InstanceSize.XLARGE));
 			databaseInstancePropsBuilder.multiAz(false);
 			databaseInstancePropsBuilder.deleteAutomatedBackups(true);
 		}
