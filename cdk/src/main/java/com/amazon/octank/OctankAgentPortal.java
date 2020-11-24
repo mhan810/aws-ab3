@@ -30,13 +30,14 @@ import software.amazon.awscdk.core.Tags;
  */
 public class OctankAgentPortal extends Construct {
 
+	public static final String DEPLOYMENT_REGION = "us-east-1";
 	public static final String KEY_PAIR_NAME = "ab3-key-pair";
 
 	protected OctankAgentPortal(Construct scope, String id, Environment environment) {
 		super(scope, id);
 
 		software.amazon.awscdk.core.Environment env = software.amazon.awscdk.core.Environment.builder().region(
-			"us-east-1").build();
+			DEPLOYMENT_REGION).build();
 
 		StackProps stackProps = StackProps.builder().env(env).build();
 

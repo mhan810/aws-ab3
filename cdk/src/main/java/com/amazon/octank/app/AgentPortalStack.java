@@ -18,6 +18,8 @@ package com.amazon.octank.app;
 import com.amazon.octank.OctankAgentPortal;
 import com.amazon.octank.network.NetworkStack;
 import com.amazon.octank.util.IAMUtils;
+import com.amazon.octank.util.UserDataUtil;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import software.amazon.awscdk.core.Construct;
 import software.amazon.awscdk.core.Duration;
 import software.amazon.awscdk.core.Stack;
@@ -46,10 +48,15 @@ import software.amazon.awscdk.services.elasticloadbalancingv2.ListenerCertificat
 import software.amazon.awscdk.services.elasticloadbalancingv2.Protocol;
 import software.amazon.awscdk.services.elasticloadbalancingv2.SslPolicy;
 import software.amazon.awscdk.services.elasticloadbalancingv2.TargetType;
+import software.amazon.awscdk.services.iam.Policy;
+import software.amazon.awscdk.services.iam.PolicyDocument;
+import software.amazon.awscdk.services.iam.PolicyProps;
 import software.amazon.awscdk.services.iam.Role;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -57,8 +64,6 @@ import java.util.Map;
  * @author Michael C. Han (mhnmz)
  */
 public class AgentPortalStack extends Stack {
-
-	public static final String AGENT_PORTAL_IMAGE_ID = "ami-09b540032d6ca0048";
 
 	public AgentPortalStack(
 		final Construct scope, final String id, final StackProps props, final NetworkStack networkStack) {
@@ -95,6 +100,7 @@ public class AgentPortalStack extends Stack {
 
 		_appServerALB = new ApplicationLoadBalancer(this, "AgentAppServerALB", albPropsBuilder.build());
 
+		//Create ApplicationTargetGroup
 		ApplicationTargetGroupProps.Builder appServerATGPropsBuilder =
 			ApplicationTargetGroupProps.builder().targetGroupName("AppServerATG").targetType(TargetType.INSTANCE);
 
@@ -111,6 +117,7 @@ public class AgentPortalStack extends Stack {
 
 		List<ApplicationTargetGroup> applicationTargetGroups = Collections.singletonList(applicationTargetGroup);
 
+		//Create ALB Listener
 		BaseApplicationListenerProps.Builder sslAppListenerPropsBuilder = BaseApplicationListenerProps.builder();
 		sslAppListenerPropsBuilder.open(true);
 		sslAppListenerPropsBuilder.protocol(ApplicationProtocol.HTTPS);
@@ -135,15 +142,31 @@ public class AgentPortalStack extends Stack {
 
 		appServerASGPropsBuilder.instanceType(InstanceType.of(InstanceClass.STANDARD5, InstanceSize.XLARGE));
 		appServerASGPropsBuilder.machineImage(
-			MachineImage.genericLinux(Collections.singletonMap("us-east-1", AGENT_PORTAL_IMAGE_ID)));
+			MachineImage.genericLinux(Collections.singletonMap("us-east-1", _AGENT_PORTAL_IMAGE_ID)));
 		appServerASGPropsBuilder.keyName(OctankAgentPortal.KEY_PAIR_NAME);
 
 		appServerASGPropsBuilder.associatePublicIpAddress(false);
 		appServerASGPropsBuilder.minCapacity(2).maxCapacity(4);
 
 		Role agentPortalEC2Role = IAMUtils.createEC2Role(this, "AgentPortalAppRole", "Octank_AgentPortal_EC2",
-			"SecretsManagerReadWrite", "AmazonS3FullAccess", "CloudWatchAgentServerPolicy",
-			"AmazonSSMManagedInstanceCore", "AmazonRDSDataFullAccess");
+			"AWSKeyManagementServicePowerUser", "AmazonRDSDataFullAccess", "AmazonS3FullAccess",
+			"AmazonSSMManagedInstanceCore", "CloudWatchAgentServerPolicy", "SecretsManagerReadWrite");
+
+		try {
+			InputStream secretsManagerPolicy = getClass().getResourceAsStream(_SECRETSMANAGER_KMS_POLICY_FILE);
+
+			PolicyDocument policyDocument = PolicyDocument.fromJson(
+				new ObjectMapper().readValue(secretsManagerPolicy, HashMap.class));
+
+			Policy secretsManagerKmsPolicy = new Policy(agentPortalEC2Role, "SecretsManagerKmsPolicy",
+				PolicyProps.builder().document(policyDocument).build());
+
+			agentPortalEC2Role.attachInlinePolicy(secretsManagerKmsPolicy);
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+
 		appServerASGPropsBuilder.role(agentPortalEC2Role);
 
 		appServerASGPropsBuilder.groupMetrics(Collections.singletonList(GroupMetrics.all()));
@@ -167,8 +190,14 @@ public class AgentPortalStack extends Stack {
 		Map<String, SecurityGroup> securityGroups = networkStack.getSecurityGroups();
 		appServerASGPropsBuilder.securityGroup(securityGroups.get(NetworkStack.APP_SG_ID));
 
+		appServerASGPropsBuilder.userData(UserDataUtil.createUserData(_AGENT_PORTAL_USER_DATA));
+
 		return new AutoScalingGroup(this, "AppServerAsg", appServerASGPropsBuilder.build());
 	}
+
+	private static final String _AGENT_PORTAL_IMAGE_ID = "ami-06e67e0f555078269";
+	private static final String _AGENT_PORTAL_USER_DATA = "/META-INF/userdata/agent_portal.sh";
+	private static final String _SECRETSMANAGER_KMS_POLICY_FILE = "/META-INF/iampolicies/secretsmanager_kms.json";
 
 	private final AutoScalingGroup _appServerASG;
 
