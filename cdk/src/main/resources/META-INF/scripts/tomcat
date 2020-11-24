@@ -1,0 +1,36 @@
+#!/bin/bash
+#chkconfig: 234 20 80
+
+[[ -f "/etc/init.d/tomcat_env" ]] && . /etc/init.d/tomcat_env
+
+export CATALINA_HOME="/opt/liferay/current/tomcat-9.0.37"
+export JAVA_HOME="/usr/lib/jvm/java-11-amazon-corretto.x86_64/"
+
+ERROR=0
+case "$1" in
+ start)
+            echo $"Starting Tomcat"
+                        if [ -z "$LIFERAY_JDBC_PERIOD_DEFAULT_PERIOD_PASSWORD" ]
+                        then
+                                echo "LIFERAY_JDBC_PERIOD_DEFAULT_PERIOD_PASSWORD is empty. Cannot s
+tart server"
+                                exit
+                        fi
+
+            sh $CATALINA_HOME/bin/startup.sh
+            ;;
+ stop)
+           echo $"Stopping Tomcat"
+           sh $CATALINA_HOME/bin/shutdown.sh
+           ;;
+ restart)
+           sh $CATALINA_HOME/bin/shutdown.sh
+           sh $CATALINA_HOME/bin/startup.sh
+            ;;
+ *)
+         echo $"Usage: $0 {start|stop|restart}"
+ exit 1
+ ;;
+esac
+
+exit $ERROR

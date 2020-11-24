@@ -19,3 +19,5 @@ TOMCAT_ENV=/etc/init.d/tomcat_env
 echo "export LIFERAY_JDBC_PERIOD_DEFAULT_PERIOD_PASSWORD=\"${PASSWORD}\"" > ${TOMCAT_ENV}
 echo "export LIFERAY_JDBC_PERIOD_DEFAULT_PERIOD_URL=\"jdbc:sqlserver://${HOST};databaseName=liferay\"" >> ${TOMCAT_ENV}
 echo "export LIFERAY_JDBC_PERIOD_DEFAULT_PERIOD_USERNAME=${USERNAME}" >> ${TOMCAT_ENV}
+
+/etc/init.d/tomcat start
