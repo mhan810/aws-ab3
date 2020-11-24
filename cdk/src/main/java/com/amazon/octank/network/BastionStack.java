@@ -2,6 +2,7 @@ package com.amazon.octank.network;
 
 import com.amazon.octank.OctankAgentPortal;
 import com.amazon.octank.util.IAMUtils;
+import com.amazon.octank.util.UserDataUtil;
 import software.amazon.awscdk.core.Stack;
 import software.amazon.awscdk.core.StackProps;
 import software.amazon.awscdk.services.autoscaling.AutoScalingGroup;
@@ -50,26 +51,27 @@ public class BastionStack extends Stack {
 	}
 
 	private AutoScalingGroup addBastionASG(NetworkStack networkStack) {
-		AutoScalingGroupProps.Builder bastionASG = AutoScalingGroupProps.builder().autoScalingGroupName("BastionASG");
+		AutoScalingGroupProps.Builder bastionASGPropsBuilder = AutoScalingGroupProps.builder().autoScalingGroupName(
+			"BastionASG");
 
-		bastionASG.instanceType(InstanceType.of(InstanceClass.BURSTABLE4_GRAVITON, InstanceSize.SMALL));
-		bastionASG.machineImage(MachineImage.latestAmazonLinux(AmazonLinuxImageProps.builder().cpuType(
+		bastionASGPropsBuilder.instanceType(InstanceType.of(InstanceClass.BURSTABLE4_GRAVITON, InstanceSize.SMALL));
+		bastionASGPropsBuilder.machineImage(MachineImage.latestAmazonLinux(AmazonLinuxImageProps.builder().cpuType(
 			AmazonLinuxCpuType.ARM_64).generation(AmazonLinuxGeneration.AMAZON_LINUX_2).build()));
-		bastionASG.keyName(OctankAgentPortal.KEY_PAIR_NAME);
+		bastionASGPropsBuilder.keyName(OctankAgentPortal.KEY_PAIR_NAME);
 
-		bastionASG.associatePublicIpAddress(true);
-		bastionASG.minCapacity(1).maxCapacity(1);
+		bastionASGPropsBuilder.associatePublicIpAddress(true);
+		bastionASGPropsBuilder.minCapacity(1).maxCapacity(1);
 
 		Role bastionEC2Role = IAMUtils.createEC2Role(this, "BastionAppRole", "Octank_Bastion_EC2",
 			"AmazonSSMManagedInstanceCore", "CloudWatchAgentServerPolicy");
-		bastionASG.role(bastionEC2Role);
+		bastionASGPropsBuilder.role(bastionEC2Role);
 
-		bastionASG.groupMetrics(Collections.singletonList(GroupMetrics.all()));
+		bastionASGPropsBuilder.groupMetrics(Collections.singletonList(GroupMetrics.all()));
 
-		bastionASG.healthCheck(software.amazon.awscdk.services.autoscaling.HealthCheck.ec2());
+		bastionASGPropsBuilder.healthCheck(software.amazon.awscdk.services.autoscaling.HealthCheck.ec2());
 
 		Vpc vpc = networkStack.getVpc();
-		bastionASG.vpc(vpc);
+		bastionASGPropsBuilder.vpc(vpc);
 
 		List<ISubnet> dmzSubnets = new ArrayList<>();
 
@@ -79,13 +81,17 @@ public class BastionStack extends Stack {
 			}
 		});
 
-		bastionASG.vpcSubnets(SubnetSelection.builder().subnets(dmzSubnets).build());
+		bastionASGPropsBuilder.vpcSubnets(SubnetSelection.builder().subnets(dmzSubnets).build());
 
 		Map<String, SecurityGroup> securityGroups = networkStack.getSecurityGroups();
-		bastionASG.securityGroup(securityGroups.get(NetworkStack.BASTION_SG_ID));
+		bastionASGPropsBuilder.securityGroup(securityGroups.get(NetworkStack.BASTION_SG_ID));
 
-		return new AutoScalingGroup(this, "BastionASG", bastionASG.build());
+		bastionASGPropsBuilder.userData(UserDataUtil.createUserData(_BASTION_USER_DATA));
+
+		return new AutoScalingGroup(this, "BastionASG", bastionASGPropsBuilder.build());
 	}
+
+	private static final String _BASTION_USER_DATA = "/META-INF/userdata/bastion.sh";
 
 	private final AutoScalingGroup _bastionASG;
 
