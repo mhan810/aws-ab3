@@ -70,7 +70,7 @@ public class AgentPortalAppServerConstruct extends Construct {
 		ApplicationLoadBalancerProps.Builder albPropsBuilder = ApplicationLoadBalancerProps.builder().loadBalancerName(
 			"AgentPortalALB");
 
-		albPropsBuilder.http2Enabled(true).internetFacing(true).ipAddressType(IpAddressType.IPV4);
+		albPropsBuilder.http2Enabled(true).internetFacing(false).ipAddressType(IpAddressType.IPV4);
 
 		Vpc vpc = networkStack.getVpc();
 
