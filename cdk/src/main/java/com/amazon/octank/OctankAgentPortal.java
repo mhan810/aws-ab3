@@ -16,6 +16,7 @@
 package com.amazon.octank;
 
 import com.amazon.octank.app.AgentPortalStack;
+import com.amazon.octank.app.AgentPortalWebServerStack;
 import com.amazon.octank.db.AgentPortalDBStack;
 import com.amazon.octank.network.BastionStack;
 import com.amazon.octank.network.NetworkStack;
@@ -55,13 +56,17 @@ public class OctankAgentPortal extends Construct {
 
 		AgentPortalStack agentPortalStack = new AgentPortalStack(this, "OctankAgentPortal", stackProps, networkStack);
 
+		AgentPortalWebServerStack agentPortalWebServerStack = new AgentPortalWebServerStack(
+			this, "OctankWebServer", stackProps, networkStack, agentPortalStack);
 		//WAFNestedStack wafNestedStack = new WAFNestedStack(networkStack, "OctankWAF", stackProps);
 
 		Tags.of(networkStack).add("project", "AB3");
 		Tags.of(encryptionKeyStack).add("project", "AB3");
+		Tags.of(bastionStack).add("project", "AB3");
 		//Tags.of(certificateStack).add("project", "AB3");
 		Tags.of(agentPortalDBStack).add("project", "AB3");
 		Tags.of(agentPortalStack).add("project", "AB3");
+		Tags.of(agentPortalWebServerStack).add("project", "AB3");
 		//Tags.of(wafNestedStack).add("project", "AB3");
 	}
 

@@ -30,8 +30,14 @@ public class AgentPortalStack extends Stack {
 
 		super(scope, id, props);
 
-		AgentPortalAppServerConstruct agentPortalAppServer = new AgentPortalAppServerConstruct(
+	    _agentPortalAppServer = new AgentPortalAppServerConstruct(
 			this, "AgentPortalAppServers", networkStack);
 	}
+
+	public AgentPortalAppServerConstruct getAgentPortalAppServer() {
+		return _agentPortalAppServer;
+	}
+
+	private final AgentPortalAppServerConstruct _agentPortalAppServer;
 
 }
