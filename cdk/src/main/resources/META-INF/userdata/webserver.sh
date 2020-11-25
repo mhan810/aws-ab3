@@ -32,7 +32,9 @@ rm -f $PEM1 $PEM2
 
 umask 022
 
-echo "ProxyPass / \"http://%ALB_URL%/\"" > /etc/httpd/conf.d/proxy.conf
+echo "RequestHeader set X-Forwarded-Proto \"https\"" > /etc/httpd/conf.d/proxy.conf
+echo "ProxyPreserveHost on" >> /etc/httpd/conf.d/proxy.conf
+echo "ProxyPass / \"http://%ALB_URL%/\"" >> /etc/httpd/conf.d/proxy.conf
 echo "ProxyPassReverse / \"http://%ALB_URL%/\"" >> /etc/httpd/conf.d/proxy.conf
 
 sudo systemctl start httpd

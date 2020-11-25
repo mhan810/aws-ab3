@@ -12,8 +12,7 @@ case "$1" in
             echo $"Starting Tomcat"
                         if [ -z "$LIFERAY_JDBC_PERIOD_DEFAULT_PERIOD_PASSWORD" ]
                         then
-                                echo "LIFERAY_JDBC_PERIOD_DEFAULT_PERIOD_PASSWORD is empty. Cannot s
-tart server"
+                                echo "LIFERAY_JDBC_PERIOD_DEFAULT_PERIOD_PASSWORD is empty. Cannot start server"
                                 exit
                         fi
 

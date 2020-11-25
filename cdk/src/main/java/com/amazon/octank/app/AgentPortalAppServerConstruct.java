@@ -107,7 +107,7 @@ public class AgentPortalAppServerConstruct extends Construct {
 
 		List<ApplicationTargetGroup> applicationTargetGroups = Collections.singletonList(applicationTargetGroup);
 
-		//Create ALB Listener
+		//Create ALB Listener for HTTPS
 		BaseApplicationListenerProps.Builder sslAppListenerPropsBuilder = BaseApplicationListenerProps.builder();
 		sslAppListenerPropsBuilder.open(true);
 		sslAppListenerPropsBuilder.protocol(ApplicationProtocol.HTTPS).port(443).sslPolicy(SslPolicy.RECOMMENDED);
@@ -118,7 +118,16 @@ public class AgentPortalAppServerConstruct extends Construct {
 
 		sslAppListenerPropsBuilder.certificates(Collections.singletonList(listenerCertificate));
 
-		_appServerALB.addListener("AgentPortalALBHttp", sslAppListenerPropsBuilder.build());
+		_appServerALB.addListener("AgentPortalALBHttps", sslAppListenerPropsBuilder.build());
+
+		//Create ALB Listener for HTTP
+		BaseApplicationListenerProps.Builder httpAppListenerPropsBuilder = BaseApplicationListenerProps.builder();
+		httpAppListenerPropsBuilder.open(true);
+		httpAppListenerPropsBuilder.protocol(ApplicationProtocol.HTTP).port(80);
+
+		httpAppListenerPropsBuilder.defaultTargetGroups(applicationTargetGroups);
+
+		_appServerALB.addListener("AgentPortalALBHttp", httpAppListenerPropsBuilder.build());
 
 		return _appServerALB;
 	}
