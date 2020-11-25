@@ -136,10 +136,10 @@ public class NetworkStack extends Stack {
 
 		//app server group
 		appSecurityGroup.addIngressRule(dmzSecurityGroup, Port.tcp(443));
-		appSecurityGroup.addIngressRule(dmzSecurityGroup, Port.tcp(8009));
+		appSecurityGroup.addIngressRule(dmzSecurityGroup, Port.tcp(80));
 		appSecurityGroup.addIngressRule(bastionSecurityGroup, Port.tcp(22));
 
-		//web server group
+		//dmz server group
 		dmzSecurityGroup.addIngressRule(Peer.anyIpv4(), Port.tcp(443));
 		dmzSecurityGroup.addIngressRule(Peer.anyIpv6(), Port.tcp(443));
 		dmzSecurityGroup.addIngressRule(Peer.anyIpv4(), Port.tcp(80));
