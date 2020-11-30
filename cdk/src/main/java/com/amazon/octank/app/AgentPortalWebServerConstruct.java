@@ -73,7 +73,7 @@ public class AgentPortalWebServerConstruct extends Construct {
 			AmazonLinuxCpuType.ARM_64).generation(AmazonLinuxGeneration.AMAZON_LINUX_2).build()));
 		webServerASGPropsBuilder.keyName(OctankAgentPortal.KEY_PAIR_NAME);
 
-		webServerASGPropsBuilder.associatePublicIpAddress(true);
+		webServerASGPropsBuilder.associatePublicIpAddress(false);
 		webServerASGPropsBuilder.minCapacity(2).maxCapacity(4);
 
 		Role webEC2Role = IAMUtils.createEC2Role(this, "AgentPortalWebRole", "Octank_AgentPortal_Web_EC2",
