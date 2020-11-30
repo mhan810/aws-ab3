@@ -21,6 +21,9 @@ import com.amazon.octank.db.AgentPortalDBStack;
 import com.amazon.octank.network.BastionStack;
 import com.amazon.octank.network.NetworkStack;
 import com.amazon.octank.security.EncryptionKeyStack;
+import com.amazon.octank.storage.S3Stack;
+import com.amazon.octank.uc.KendraFAQStack;
+import com.amazon.octank.uc.KendraIndexStack;
 import software.amazon.awscdk.core.App;
 import software.amazon.awscdk.core.Construct;
 import software.amazon.awscdk.core.StackProps;
@@ -42,11 +45,17 @@ public class OctankAgentPortal extends Construct {
 
 		StackProps stackProps = StackProps.builder().env(env).build();
 
+		EncryptionKeyStack encryptionKeyStack = new EncryptionKeyStack(this, "OctankKeys", stackProps, environment);
+
+		S3Stack s3Stack = new S3Stack(this, "OctankS3", stackProps, encryptionKeyStack);
+
+		s3Stack.addDependency(encryptionKeyStack);
+
 		NetworkStack networkStack = new NetworkStack(this, "OctankNetwork", stackProps);
 
 		BastionStack bastionStack = new BastionStack(this, "OctankBastion", stackProps, networkStack);
 
-		EncryptionKeyStack encryptionKeyStack = new EncryptionKeyStack(this, "OctankKeys", stackProps, environment);
+		bastionStack.addDependency(networkStack);
 
 		// @todo private CAs not supported well in CDK 1.74 can re-examine when support improved
 		//CertificateStack certificateStack = new CertificateStack(this, "OctankCA", stackProps);
@@ -54,19 +63,38 @@ public class OctankAgentPortal extends Construct {
 		AgentPortalDBStack agentPortalDBStack = new AgentPortalDBStack(
 			this, "OctankDb", stackProps, networkStack, encryptionKeyStack, environment);
 
+		agentPortalDBStack.addDependency(encryptionKeyStack);
+		agentPortalDBStack.addDependency(networkStack);
+
 		AgentPortalStack agentPortalStack = new AgentPortalStack(this, "OctankAgentPortal", stackProps, networkStack);
+
+		agentPortalStack.addDependency(networkStack);
+		agentPortalStack.addDependency(agentPortalDBStack);
 
 		AgentPortalWebServerStack agentPortalWebServerStack = new AgentPortalWebServerStack(
 			this, "OctankWebServer", stackProps, networkStack, agentPortalStack);
+
+		agentPortalWebServerStack.addDependency(networkStack);
+		agentPortalWebServerStack.addDependency(agentPortalStack);
+
+		KendraIndexStack kendraIndexStack = new KendraIndexStack(
+			this, "KendraIndex", stackProps, encryptionKeyStack, environment);
+
+		KendraFAQStack kendraFAQStack = new KendraFAQStack(this, "KendraFAQ", stackProps, kendraIndexStack, s3Stack);
+		kendraFAQStack.addDependency(kendraIndexStack);
 		//WAFNestedStack wafNestedStack = new WAFNestedStack(networkStack, "OctankWAF", stackProps);
 
-		Tags.of(networkStack).add("project", "AB3");
 		Tags.of(encryptionKeyStack).add("project", "AB3");
+		Tags.of(s3Stack).add("project", "AB3");
+		Tags.of(networkStack).add("project", "AB3");
 		Tags.of(bastionStack).add("project", "AB3");
 		//Tags.of(certificateStack).add("project", "AB3");
 		Tags.of(agentPortalDBStack).add("project", "AB3");
 		Tags.of(agentPortalStack).add("project", "AB3");
 		Tags.of(agentPortalWebServerStack).add("project", "AB3");
+
+		Tags.of(kendraIndexStack).add("project", "AB3");
+		Tags.of(kendraFAQStack).add("project", "AB3");
 		//Tags.of(wafNestedStack).add("project", "AB3");
 	}
 

@@ -1,0 +1,33 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+	{
+	  "Sid": "VisualEditor0",
+	  "Effect": "Allow",
+	  "Action": [
+		"s3:GetObject",
+		"s3:ListBucket"
+	  ],
+	  "Resource": "arn:aws:s3:::octank-ab3-data/*"
+	},
+	{
+	  "Sid": "SmKmsDelegate",
+	  "Effect": "Allow",
+	  "Action": [
+		"kms:Decrypt",
+		"kms:Verify",
+		"kms:Encrypt",
+		"kms:DescribeKey"
+	  ],
+	  "Resource": "*",
+	  "Condition": {
+		"StringEquals": {
+		  "kms:ViaService": [
+			"kendra.us-east-1.amazonaws.com",
+			"s3.us-east-1.amazonaws.com"
+		  ]
+		}
+	  }
+	}
+  ]
+}
