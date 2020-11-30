@@ -47,15 +47,6 @@ public class KendraIndexStack extends Stack {
 		indexPropsBuilder.roleArn(kendraRole.getRoleArn());
 
 		_kendraIndex = new CfnIndex(this, "OctankKendraIndex", indexPropsBuilder.build());
-/*
-
-		CfnWaitConditionHandle indexWaitConditionHandler = new CfnWaitConditionHandle(
-			this, "KendraIndexWaitConditionHandler");
-
-		CfnWaitCondition indexWaitCondition = new CfnWaitCondition(
-			this, "KendraIndexWaitCondition", CfnWaitConditionProps.builder().count(1).handle(
-			indexWaitConditionHandler.getRef()).timeout("1000").build());
-*/
 	}
 
 	public CfnIndex getKendraIndex() {

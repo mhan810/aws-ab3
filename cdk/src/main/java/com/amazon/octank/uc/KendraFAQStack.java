@@ -4,9 +4,6 @@ import com.amazon.octank.storage.S3Stack;
 import com.amazon.octank.util.IAMUtils;
 import software.amazon.awscdk.core.Stack;
 import software.amazon.awscdk.core.StackProps;
-import software.amazon.awscdk.services.cloudformation.CfnWaitCondition;
-import software.amazon.awscdk.services.cloudformation.CfnWaitConditionHandle;
-import software.amazon.awscdk.services.cloudformation.CfnWaitConditionProps;
 import software.amazon.awscdk.services.iam.Role;
 import software.amazon.awscdk.services.iam.ServicePrincipal;
 import software.amazon.awscdk.services.kendra.CfnFaq;
@@ -40,12 +37,6 @@ public class KendraFAQStack extends Stack {
 			                       .key("kendra/help-desk-faq.csv").build());
 
 		CfnFaq cfnFaq = new CfnFaq(this, "OctankKendraFAQ", faqPropsBuilder.build());
-		/*CfnWaitConditionHandle faqWaitConditionHandle = new CfnWaitConditionHandle(
-			this, "KendraFaqWaitConditionHandler");
-
-		CfnWaitCondition faqWaitCondition = new CfnWaitCondition(
-			this, "KendraFaqWaitCondition", CfnWaitConditionProps.builder().count(1).handle(
-			faqWaitConditionHandle.getRef()).timeout("1000").build());*/
 	}
 
 	private static final String _KMS_POLICY_FILE = "/META-INF/iampolicies/kendrafaq.json";
