@@ -2,7 +2,7 @@
   "Version": "2012-10-17",
   "Statement": [
 	{
-	  "Sid": "SmKmsDelegate",
+	  "Sid": "KmsDelegate",
 	  "Effect": "Allow",
 	  "Action": [
 		"kms:Decrypt",
@@ -13,7 +13,11 @@
 	  "Resource": "*",
 	  "Condition": {
 		"StringEquals": {
-		  "kms:ViaService": "secretsmanager.us-east-1.amazonaws.com"
+		  "kms:ViaService": [
+			"kendra.us-east-1.amazonaws.com",
+			"secretsmanager.us-east-1.amazonaws.com",
+			"s3.us-east-1.amazonaws.com"
+		  ]
 		}
 	  }
 	}

@@ -5,7 +5,6 @@ import com.amazon.octank.OctankAgentPortal;
 import com.amazon.octank.network.NetworkStack;
 import com.amazon.octank.util.IAMUtils;
 import com.amazon.octank.util.UserDataUtil;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import software.amazon.awscdk.core.Construct;
 import software.amazon.awscdk.core.Duration;
 import software.amazon.awscdk.services.autoscaling.AutoScalingGroup;
@@ -32,15 +31,10 @@ import software.amazon.awscdk.services.elasticloadbalancingv2.ListenerCertificat
 import software.amazon.awscdk.services.elasticloadbalancingv2.Protocol;
 import software.amazon.awscdk.services.elasticloadbalancingv2.SslPolicy;
 import software.amazon.awscdk.services.elasticloadbalancingv2.TargetType;
-import software.amazon.awscdk.services.iam.Policy;
-import software.amazon.awscdk.services.iam.PolicyDocument;
-import software.amazon.awscdk.services.iam.PolicyProps;
 import software.amazon.awscdk.services.iam.Role;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -148,20 +142,7 @@ public class AgentPortalAppServerConstruct extends Construct {
 			"AWSKeyManagementServicePowerUser", "AmazonRDSDataFullAccess", "AmazonS3FullAccess",
 			"AmazonSSMManagedInstanceCore", "CloudWatchAgentServerPolicy", "SecretsManagerReadWrite");
 
-		try {
-			InputStream secretsManagerPolicy = getClass().getResourceAsStream(_SECRETSMANAGER_KMS_POLICY_FILE);
-
-			PolicyDocument policyDocument = PolicyDocument.fromJson(
-				new ObjectMapper().readValue(secretsManagerPolicy, HashMap.class));
-
-			Policy secretsManagerKmsPolicy = new Policy(agentPortalEC2Role, "SecretsManagerKmsPolicy",
-				PolicyProps.builder().document(policyDocument).build());
-
-			agentPortalEC2Role.attachInlinePolicy(secretsManagerKmsPolicy);
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
+		IAMUtils.addKmsPolicy(agentPortalEC2Role);
 
 		appServerASGPropsBuilder.role(agentPortalEC2Role);
 
@@ -195,7 +176,6 @@ public class AgentPortalAppServerConstruct extends Construct {
 	private static final String _AGENT_PORTAL_USER_DATA = "/META-INF/userdata/agent_portal.sh";
 	private static final String _ALB_SSL_CERT =
 		"arn:aws:acm:us-east-1:817387504538:certificate/b4ae6329-de7c-4318-b18e-58b5b59bf786";
-	private static final String _SECRETSMANAGER_KMS_POLICY_FILE = "/META-INF/iampolicies/secretsmanager_kms.json";
 
 	private final AutoScalingGroup _appServerASG;
 
