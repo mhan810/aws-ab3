@@ -1,0 +1,4 @@
+first name,last name,user login,routing profile name,security_profile_name_1|security_profile_name_2,phone type (soft/desk),phone number,soft phone auto accept (yes/no),ACW timeout (seconds)
+John,Smith,john.smith@octank-insurance.com,Agent Help Center Routing Profile,Agent,soft,,no,0
+Jane,Doe,jane.doe@octank-insurance.com,Agent Help Center Routing Profile,Agent,soft,,no,0
+Jill,Murphy,jill.murphy@octank-insurance.com,Agent Help Center Routing Profile,Agent,soft,,no,0
