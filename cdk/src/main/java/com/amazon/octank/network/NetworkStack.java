@@ -45,6 +45,7 @@ public class NetworkStack extends Stack {
 	public static final String APP_SG_ID = "AppSG";
 	public static final String APP_SUBNET_NAME = "App";
 	public static final String BASTION_SG_ID = "BastionSG";
+	public static final String LAMBDA_SG_ID = "LambdaSG";
 	public static final String DB_SG_ID = "DbSG";
 	public static final String DB_SUBNET_NAME = "Db";
 	public static final String DMZ_SG_ID = "DmzSG";
@@ -124,6 +125,20 @@ public class NetworkStack extends Stack {
 
 		_securityGroups.put(BASTION_SG_ID, bastionSecurityGroup);
 
+		SecurityGroup lambdaGroup = new SecurityGroup(vpc, LAMBDA_SG_ID, new SecurityGroupProps() {
+			@Override
+			public IVpc getVpc() {
+				return vpc;
+			}
+
+			@Override
+			public String getSecurityGroupName() {
+				return "Lambda";
+			}
+		});
+
+		_securityGroups.put(LAMBDA_SG_ID, lambdaGroup);
+
 		//database group
 		dbSecurityGroup.addIngressRule(appSecurityGroup, Port.tcp(1433));
 		dbSecurityGroup.addIngressRule(appSecurityGroup, Port.tcp(3306));
@@ -145,6 +160,8 @@ public class NetworkStack extends Stack {
 		dmzSecurityGroup.addIngressRule(Peer.anyIpv4(), Port.tcp(80));
 		dmzSecurityGroup.addIngressRule(Peer.anyIpv6(), Port.tcp(80));
 		dmzSecurityGroup.addIngressRule(bastionSecurityGroup, Port.tcp(22));
+
+		lambdaGroup.addEgressRule(lambdaGroup, Port.allTraffic());
 	}
 
 	private Vpc buildVPC(Construct scope, String id) {

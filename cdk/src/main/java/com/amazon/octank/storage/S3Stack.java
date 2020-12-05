@@ -5,7 +5,6 @@ import software.amazon.awscdk.core.Stack;
 import software.amazon.awscdk.core.StackProps;
 import software.amazon.awscdk.services.s3.BlockPublicAccess;
 import software.amazon.awscdk.services.s3.Bucket;
-import software.amazon.awscdk.services.s3.BucketEncryption;
 import software.amazon.awscdk.services.s3.BucketProps;
 import software.constructs.Construct;
 
@@ -30,6 +29,12 @@ public class S3Stack extends Stack {
 
 		_dataBucket = new Bucket(this, "OctankDataBucket", dataBucketProps.build());
 
+		BucketProps.Builder mlOutputProps = createBucketPropsBuilder(encryptionKeyStack, "octank-ab3-ml-output", true);
+
+		mlOutputProps.serverAccessLogsBucket(_logsBucket);
+		mlOutputProps.serverAccessLogsPrefix("/access-logs/s3");
+
+		_mlOutputBucket = new Bucket(this, "OctankMLBucket", mlOutputProps.build());
 	}
 
 	public Bucket getDataBucket() {
@@ -43,17 +48,18 @@ public class S3Stack extends Stack {
 	private BucketProps.Builder createBucketPropsBuilder(
 		final EncryptionKeyStack encryptionKeyStack, final String bucketName, final boolean versioned) {
 
-		BucketProps.Builder logsBucketProps = BucketProps.builder().bucketName(bucketName);
+		BucketProps.Builder bucketProps = BucketProps.builder().bucketName(bucketName);
 
-		logsBucketProps.blockPublicAccess(BlockPublicAccess.BLOCK_ALL).publicReadAccess(false);
-		logsBucketProps.encryption(BucketEncryption.KMS);
-		logsBucketProps.encryptionKey(encryptionKeyStack.getDataEncryptionKey());
-		logsBucketProps.versioned(versioned);
+		bucketProps.blockPublicAccess(BlockPublicAccess.BLOCK_ALL).publicReadAccess(false);
+		//bucketProps.encryption(BucketEncryption.KMS);
+		//bucketProps.encryptionKey(encryptionKeyStack.getDataEncryptionKey());
+		bucketProps.versioned(versioned);
 
-		return logsBucketProps;
+		return bucketProps;
 	}
 
 	private final Bucket _dataBucket;
 	private final Bucket _logsBucket;
 
+	private final Bucket _mlOutputBucket;
 }
