@@ -118,17 +118,22 @@ public class AgentPortalDBStack extends Stack {
 		return _databaseInstance;
 	}
 
+	public DatabaseSecret getDatabaseSecret() {
+		return _databaseSecret;
+	}
+
 	private void addCredentials(
 		EncryptionKeyStack encryptionKeyStack, DatabaseInstanceProps.Builder databaseInstancePropsBuilder) {
 
 		DatabaseSecretProps databaseSecretProps = DatabaseSecretProps.builder().username("admin").encryptionKey(
 			encryptionKeyStack.getPassEncryptionKey()).build();
 
-		DatabaseSecret databaseSecret = new DatabaseSecret(this, "OctankDatabaseSecret", databaseSecretProps);
+		_databaseSecret = new DatabaseSecret(this, "OctankDatabaseSecret", databaseSecretProps);
 
-		databaseInstancePropsBuilder.credentials(Credentials.fromSecret(databaseSecret, "admin"));
+		databaseInstancePropsBuilder.credentials(Credentials.fromSecret(_databaseSecret, "admin"));
 	}
 
 	private final DatabaseInstance _databaseInstance;
+	private DatabaseSecret _databaseSecret;
 
 }

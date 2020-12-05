@@ -23,20 +23,11 @@ import java.util.List;
 public class IAMUtils {
 
 	public static void addInlinePolicy(Role role, String id, String jsonPolicyFileName) {
-		try {
-			InputStream secretsManagerPolicy = IAMUtils.class.getResourceAsStream(jsonPolicyFileName);
+		PolicyDocument policyDocument = getPolicyDocument(jsonPolicyFileName);
 
-			PolicyDocument policyDocument = PolicyDocument.fromJson(
-				new ObjectMapper().readValue(secretsManagerPolicy, HashMap.class));
+		Policy secretsManagerKmsPolicy = new Policy(role, id, PolicyProps.builder().document(policyDocument).build());
 
-			Policy secretsManagerKmsPolicy = new Policy(role, id,
-				PolicyProps.builder().document(policyDocument).build());
-
-			role.attachInlinePolicy(secretsManagerKmsPolicy);
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
+		role.attachInlinePolicy(secretsManagerKmsPolicy);
 	}
 
 	public static void addKmsPolicy(Role role) {
@@ -65,6 +56,20 @@ public class IAMUtils {
 		rolePropsBuilder.assumedBy(servicePrincipal);
 
 		return new Role(scope, id, rolePropsBuilder.build());
+	}
+
+	public static PolicyDocument getPolicyDocument(String jsonPolicyFileName) {
+		try {
+			InputStream policyDocumenStream = IAMUtils.class.getResourceAsStream(jsonPolicyFileName);
+
+			PolicyDocument policyDocument = PolicyDocument.fromJson(
+				new ObjectMapper().readValue(policyDocumenStream, HashMap.class));
+
+			return policyDocument;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	private static final String _KMS_POLICY_FILE = "/META-INF/iampolicies/kms.json";

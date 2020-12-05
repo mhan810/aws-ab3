@@ -2,6 +2,7 @@ package com.amazon.octank.app;
 
 
 import com.amazon.octank.OctankAgentPortal;
+import com.amazon.octank.db.AgentPortalDBStack;
 import com.amazon.octank.network.NetworkStack;
 import com.amazon.octank.util.IAMUtils;
 import com.amazon.octank.util.UserDataUtil;
@@ -35,6 +36,7 @@ import software.amazon.awscdk.services.iam.Role;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -44,11 +46,12 @@ import java.util.Map;
 public class AgentPortalAppServerConstruct extends Construct {
 
 	public AgentPortalAppServerConstruct(
-		final software.constructs.Construct scope, final String id, final NetworkStack networkStack) {
+		final software.constructs.Construct scope, final String id, final NetworkStack networkStack,
+		final AgentPortalDBStack agentPortalDBStack) {
 
 		super(scope, id);
 
-		_appServerASG = addAppServerASG(networkStack);
+		_appServerASG = addAppServerASG(networkStack, agentPortalDBStack);
 		_appServerALB = addAppServerALB(networkStack);
 	}
 
@@ -64,7 +67,7 @@ public class AgentPortalAppServerConstruct extends Construct {
 		ApplicationLoadBalancerProps.Builder albPropsBuilder = ApplicationLoadBalancerProps.builder().loadBalancerName(
 			"AgentPortalALB");
 
-		albPropsBuilder.http2Enabled(true).internetFacing(false).ipAddressType(IpAddressType.IPV4);
+		albPropsBuilder.http2Enabled(true).internetFacing(true).ipAddressType(IpAddressType.IPV4);
 
 		Vpc vpc = networkStack.getVpc();
 
@@ -126,7 +129,8 @@ public class AgentPortalAppServerConstruct extends Construct {
 		return _appServerALB;
 	}
 
-	private AutoScalingGroup addAppServerASG(NetworkStack networkStack) {
+	private AutoScalingGroup addAppServerASG(
+		NetworkStack networkStack, final AgentPortalDBStack agentPortalDBStack) {
 		AutoScalingGroupProps.Builder appServerASGPropsBuilder = AutoScalingGroupProps.builder().autoScalingGroupName(
 			"AgentAppServerASG");
 
@@ -167,7 +171,10 @@ public class AgentPortalAppServerConstruct extends Construct {
 		Map<String, SecurityGroup> securityGroups = networkStack.getSecurityGroups();
 		appServerASGPropsBuilder.securityGroup(securityGroups.get(NetworkStack.APP_SG_ID));
 
-		appServerASGPropsBuilder.userData(UserDataUtil.createUserData(_AGENT_PORTAL_USER_DATA));
+		Map<String, String> tokens = new HashMap<>();
+		tokens.put("%DB_SECRET_NAME%", agentPortalDBStack.getDatabaseSecret().getSecretArn());
+
+		appServerASGPropsBuilder.userData(UserDataUtil.createUserData(_AGENT_PORTAL_USER_DATA, tokens));
 
 		return new AutoScalingGroup(this, "AppServerAsg", appServerASGPropsBuilder.build());
 	}

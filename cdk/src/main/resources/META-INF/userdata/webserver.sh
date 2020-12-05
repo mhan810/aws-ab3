@@ -1,6 +1,6 @@
 #!/bin/bash
 
-yum update -yqe 0
+yum update -y -q -e 0
 yum install -y amazon-cloudwatch-agent
 yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_arm64/amazon-ssm-agent.rpm
 yum install -y httpd

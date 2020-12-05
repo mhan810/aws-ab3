@@ -15,6 +15,7 @@
 
 package com.amazon.octank.app;
 
+import com.amazon.octank.db.AgentPortalDBStack;
 import com.amazon.octank.network.NetworkStack;
 import software.amazon.awscdk.core.Construct;
 import software.amazon.awscdk.core.Stack;
@@ -26,12 +27,13 @@ import software.amazon.awscdk.core.StackProps;
 public class AgentPortalStack extends Stack {
 
 	public AgentPortalStack(
-		final Construct scope, final String id, final StackProps props, final NetworkStack networkStack) {
+		final Construct scope, final String id, final StackProps props, final NetworkStack networkStack,
+		final AgentPortalDBStack agentPortalDBStack) {
 
 		super(scope, id, props);
 
-	    _agentPortalAppServer = new AgentPortalAppServerConstruct(
-			this, "AgentPortalAppServers", networkStack);
+		_agentPortalAppServer = new AgentPortalAppServerConstruct(
+			this, "AgentPortalAppServers", networkStack, agentPortalDBStack);
 	}
 
 	public AgentPortalAppServerConstruct getAgentPortalAppServer() {
