@@ -1,7 +1,9 @@
 package com.amazon.octank.uc;
 
 import com.amazon.octank.Environment;
+import com.amazon.octank.network.NetworkStack;
 import com.amazon.octank.security.EncryptionKeyStack;
+import com.amazon.octank.storage.S3Stack;
 import com.amazon.octank.util.IAMUtils;
 import software.amazon.awscdk.core.Stack;
 import software.amazon.awscdk.core.StackProps;
@@ -20,6 +22,7 @@ public class KendraIndexStack extends Stack {
 	public KendraIndexStack(
 		final software.constructs.Construct scope, final String id, final StackProps props,
 		final EncryptionKeyStack encryptionKeyStack, final Environment environment) {
+
 		super(scope, id, props);
 
 		CfnIndexProps.Builder indexPropsBuilder = CfnIndexProps.builder().name("OctankQAIndex");

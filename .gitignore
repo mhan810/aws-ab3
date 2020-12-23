@@ -1,5 +1,6 @@
 .classpath.txt
 target
+cdk/resources/**
 .classpath
 .project
 .idea
